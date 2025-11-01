@@ -26,12 +26,12 @@ pip install -r requirements.txt  # (if a requirements file is added later)
 
 2) Scrape or refresh the schedule into SQLite
 ```bash
-python espn_scraper.py --out out/espn_schedule.db
+python espn_scraper.py
 ```
 
 3) Generate XMLTV + M3U
 ```bash
-python generate_guide.py   --db out/espn_schedule.db   --xml out/espn_plus.xml   --m3u out/espn_plus.m3u
+python generate_guide.py
 ```
 
 4) Point your consumer (e.g., Channels DVR) at the **XMLTV** and **M3U** you generated.  STRMLINK is the stream format on Custom Channels.
