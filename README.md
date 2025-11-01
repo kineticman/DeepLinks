@@ -34,7 +34,7 @@ python espn_scraper.py --out out/espn_schedule.db
 python generate_guide.py   --db out/espn_schedule.db   --xml out/espn_plus.xml   --m3u out/espn_plus.m3u
 ```
 
-4) Point your consumer (e.g., Channels DVR) at the **XMLTV** and **M3U** you generated.
+4) Point your consumer (e.g., Channels DVR) at the **XMLTV** and **M3U** you generated.  STRMLINK is the stream format on Custom Channels.
 
 ---
 
@@ -61,4 +61,4 @@ MIT — see `LICENSE`
 ---
 
 ## Acknowledgements
-Built by Brad Herrold and collaborators.
+Built by Kineticman and collaborators.
