@@ -1,0 +1,41 @@
+#!/usr/bin/env bash
+# hourly.sh — regenerate guide, then tell Channels DVR to reload M3U and XMLTV
+# Safety flags
+set -euo pipefail
+
+# -------- Config (override via env or edit here) --------
+HOST="${HOST:-http://127.0.0.1:8089}"
+M3U_SOURCE="${M3U_SOURCE:-streamlinks}"
+XMLTV_ID="${XMLTV_ID:-XMLTV-streamlinks}"
+DELAY="${DELAY:-20}"
+GEN_CMD="${GEN_CMD:-python3 generate_guide.py}"
+# -------------------------------------------------------
+
+log() { printf '[%(%F %T)T] %s\n' -1 "$*"; }
+
+# Avoid proxy inheritance
+unset http_proxy https_proxy HTTP_PROXY HTTPS_PROXY
+
+# 1) Build guide
+log "→ Running: $GEN_CMD"
+bash -lc "$GEN_CMD"
+
+# 2) Wait
+log "→ Sleeping ${DELAY}s"
+sleep "$DELAY"
+
+# 3) Reload M3U provider
+log "→ POST ${HOST}/providers/m3u/sources/${M3U_SOURCE}/refresh"
+curl -sS --fail -m 20 -X POST "${HOST}/providers/m3u/sources/${M3U_SOURCE}/refresh" | sed 's/^/  body: /'
+log "✓ M3U refresh requested"
+
+# 4) Wait
+log "→ Sleeping ${DELAY}s"
+sleep "$DELAY"
+
+# 5) Redownload XMLTV lineup
+log "→ PUT ${HOST}/dvr/lineups/${XMLTV_ID}"
+curl -sS --fail -m 30 -X PUT "${HOST}/dvr/lineups/${XMLTV_ID}" | sed 's/^/  body: /'
+log "✓ XMLTV refresh requested"
+
+log "✅ All steps completed."
