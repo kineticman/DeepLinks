@@ -17,25 +17,19 @@ This repository locks in the **baseline** consisting of:
 
 ## Quick Start (Python)
 
-1) Create a virtual environment and install deps (if any)
-```bash
-python3 -m venv .venv
-source .venv/bin/activate  # Windows: .venv\Scripts\activate
-pip install -r requirements.txt  # (if a requirements file is added later)
-```
-
-2) Scrape or refresh the schedule into SQLite
+1) Scrape or refresh the schedule into SQLite
 ```bash
 python espn_scraper.py
 ```
 
-3) Generate XMLTV + M3U
+2) Generate XMLTV + M3U
 ```bash
 python generate_guide.py
 ```
 
-4) Point your consumer (e.g., Channels DVR) at the **XMLTV** and **M3U** you generated.  STRMLINK is the stream format on Custom Channels.
+3) Point your consumer (e.g., Channels DVR) at the **XMLTV** and **M3U** you generated.  STRMLINK is the stream format on Custom Channels.
 
+4) The DB tool pulls 4 days of data.  The M3U generator makes a new channel for any event LIVE NOW and within next 3 hours.  Recommend to re-run the regenerate_guide hourly, and only need to make new DB nightly.   
 ---
 
 ## Conventions
