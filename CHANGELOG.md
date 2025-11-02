@@ -12,3 +12,9 @@ All notable changes to this project will be documented in this file.
 - Generator: first `<display-name>` is event title; second is “ESPN+”.
 - Fix: time-window query uses `julianday()` on both sides (no undercount).
 - Minor: XMLTV/M3U counts now align with DB window; no behavior changes otherwise.
+
+## v1.7.4 — 2025-11-01
+- Generator: ultra-short M3U names (≤8 chars) for left-rail tiles.
+- XMLTV: channel display-name shows event title; ESPN+ as alias.
+- Window fix: use julianday() on both sides (no undercount).
+- Shebang/exec fix for direct ./generate_guide.py usage.
