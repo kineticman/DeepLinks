@@ -16,6 +16,12 @@ GEN_CMD="${GEN_CMD:-python3}"
 GEN_ARGS="${GEN_ARGS:-"${SCRIPT_DIR}/generate_guide.py"}"
 # -------------------------------------------------------
 
+# Ensure stable working dir so relative paths (e.g., out/espn_schedule.db) work
+cd "$SCRIPT_DIR"
+export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+echo "[$(date -Is)] CWD=$(pwd)" >> "$SCRIPT_DIR/logs/hourly.log"
+
+
 log() { printf '[%(%F %T)T] %s\n' -1 "$*"; }
 
 # Avoid proxy inheritance (per your standing rule)
