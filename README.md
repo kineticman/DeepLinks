@@ -59,7 +59,15 @@ python3 generate_guide.py
 - `M3U_SOURCE`: `streamlinks`
 - `XMLTV_ID`: `XMLTV-streamlinks`
 - `DELAY`: `20` seconds
-- `GEN_CMD`: `python3 generate_guide.py`
+- `GEN_CMD`: `python3`
+- `GEN_ARGS`: `generate_guide.py`
+- `DEEPLINKS_DB`: auto-set to `"$SCRIPT_DIR/out/espn_schedule.db"` by `hourly.sh`
+
+> **Note:** You can point the generator at a different DB by exporting
+> `DEEPLINKS_DB=/absolute/path/to/espn_schedule.db` before running
+> `generate_guide.py` (the hardened `hourly.sh` already sets the canonical path
+> for you).
+
 
 Run manually:
 ```bash
@@ -188,6 +196,8 @@ View logs: `journalctl --user -u deeplinks-out -f`
 - **No channels showing:** verify the next 3 hours actually contain events; also check file paths under `out/`.
 - **Links don’t launch:** your device must register a handler for `sportscenter://`.
 - **Channels DVR reload fails:** confirm `HOST`, `M3U_SOURCE`, and `XMLTV_ID` in `hourly.sh`.
+- **`sqlite3.OperationalError: no such table: events`:** the generator opened the wrong DB (usually from running in the wrong working directory). Run from the repo root _or_ set `DEEPLINKS_DB` to the absolute path (`/path/to/DeepLinks/out/espn_schedule.db`). The shipped `hourly.sh` now `cd`s to its own directory and exports `DEEPLINKS_DB` for you.
+- **Cron didn’t run / weird env:** ensure your crontab uses `bash -lc` and `cd`s into the repo. Use a lock (`flock`) and avoid duplicate lines. See **docs/CRON_EXAMPLES.md** for known-good entries.
 
 ## License
 
