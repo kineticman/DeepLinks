@@ -27,6 +27,11 @@ sportscenter://x-callback-url/showWatchStream?playID=<UUID>
 
 ## Quick Start
 
+### Cron (optional)
+For hourly guide refresh and a nightly scrape, see [docs/CRON_EXAMPLES.md](docs/CRON_EXAMPLES.md).
+The `hourly.sh` script ensures a stable working directory and pins `DEEPLINKS_DB` to the canonical path.
+
+
 1) Scrape or refresh the schedule into SQLite:
 ```bash
 python3 espn_scraper.py
