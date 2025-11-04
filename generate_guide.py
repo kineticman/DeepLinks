@@ -255,8 +255,9 @@ def format_desc(ev: Event) -> str:
         parts.append(ev.sport.upper())
     if ev.league:
         parts.append(ev.league.upper())
-    if ev.status:
-        parts.append(ev.status.upper())
+    # Keep only a FINAL marker in description; front-ends will use <live/>
+    if ev.status and str(ev.status).strip().lower() in ("final", "ended"):
+        parts.append("FINAL")
     # Join with " - " and cap length for safety
     return (" - ".join(parts))[:1000] if parts else "ESPN+ EVENT"
 
@@ -289,7 +290,7 @@ def emit_programme(
     title: str,
     categories: Iterable[str] = (),
     desc: Optional[str] = None,
-) -> None:
+) -> ET.Element:
     p = ET.SubElement(
         tv,
         "programme",
@@ -304,8 +305,9 @@ def emit_programme(
         ce = ET.SubElement(p, "category")
         ce.set("lang", "en")
         ce.text = c
+    return p
 
-def generate_xmltv(events: List[Event], out_path: str) -> None:
+def generate_xmltv(events: List[Event], out_path: str) -> ET.Element:
     tv = ET.Element("tv")
     now = now_utc()
 
@@ -342,7 +344,9 @@ def generate_xmltv(events: List[Event], out_path: str) -> None:
             cats.append(ev.sport)
         if ev.league:
             cats.append(ev.league)
-        emit_programme(tv, chan, ev.start, ev.stop, ev.title, cats, event_desc)
+        prog = emit_programme(tv, chan, ev.start, ev.stop, ev.title, cats, event_desc)
+        if ev.start <= now <= ev.stop:
+            ET.SubElement(prog, "live")
 
         # --- AFTER EVENT: 8 hours of "STREAM OFFLINE" blocks ---
         post_end = ev.stop + timedelta(hours=8)
