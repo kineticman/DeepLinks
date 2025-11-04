@@ -1,0 +1,21 @@
+services:
+  eplustv-ah4c:
+    image: bnhf/eplustv-ah4c:${TAG:-latest}
+    container_name: eplustv-ah4c
+    dns_search:
+      - ${DOMAIN:-localdomain} # Change to the name of your LAN's domain, which is usually local or localdomain
+      - ${TAILNET} # Change to the name of your Tailnet, which is in the form tailxxxxx.ts.net
+    dns_opt:
+      - ndots:${NDOTS:-1} # Allows hostanme resolution on LAN and Tailnet domains in Alpine Linux-based containers
+    ports: # Note that the M3U is hosted by ah4c (typically port 7654) and the XML is hosted by eplustv-ah4c (typically port 7644)
+      - ${PORT:-7644}:${PORT:-7644} # The port espn_plus.xml will be hosted on, in the form http://<hostname or IP>:<PORT>/espn_plus.xml
+    environment:
+      - TZ=${TZ} # Your local timezone in a valid Linux format
+      - HOST=${HOST} # Your Channels DVR host URL in the form http://<hostname or IP>:8089
+      - CRON_HOURLY=${CRON_HOURLY:-5 * * * *} # Typically 5 * * * *
+      - CRON_NIGHTLY=${CRON_NIGHTLY:-15 3 * * *} # Typically 15 3 * * *
+      - PORT=${PORT:-7644} # The port espn_plus.xml will be hosted on, in the form http://<hostname or IP>:<PORT>/espn_plus.xml
+      - AH4C=${AH4C:-true} # Set to true for the URL used in espn_plus.m3u to be in a valid ah4c format, typically hosted at http://<hostname or IP>:7654/m3u/espn_plus.m3u
+    volumes:
+      - ${HOST_DIR:-/data}/ah4c/m3u:/app/out # The parent directory, on your Docker host, under which your ah4c M3Us are stored 
+    restart: unless-stopped
