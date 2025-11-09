@@ -413,49 +413,53 @@ def summarize_run(events: List[Event]) -> None:
     print(f"Found {len(events)} events\n")
 
     print("Generating M3U playlist...")
-    # === Per-event M3U writer (robust) ===
+    # === Per-event M3U writer with XMLTV ID parity ===
     now_local = now_utc()
     def _get(ev, key, default=None):
         try:
             return ev.get(key, default)
         except AttributeError:
             return getattr(ev, key, default)
-    def _fmt_time(val):
-        try:
-            return val.strftime('%H:%M')
-        except Exception:
-            s = str(val) if val is not None else ''
-            return s[11:16] if len(s) >= 16 and 'T' in s else s
-    import hashlib
     lines = ['#EXTM3U']
     chno = 31000
     events_list = list(events)
     for ev in events_list:
+        # IDs
+        play_id = _get(ev, 'id') or _get(ev, 'play_id') or _get(ev, 'event_uid') or str(chno)
+        chan_id = f"dl-{play_id}"
+        # Title/league
         league = _get(ev, 'league', '') or ''
         title  = _get(ev, 'title', 'Unknown Event')
         start  = _get(ev, 'start', _get(ev, 'start_utc'))
         stop   = _get(ev, 'stop',  _get(ev, 'stop_utc'))
         is_live_flag = bool(_get(ev, 'is_live', False))
-        # Try to compute live if we have datetime-like start/stop
-        is_live = False
-        try:
-            if hasattr(start, 'tzinfo') and hasattr(stop, 'tzinfo'):
-                is_live = start <= now_local <= stop
-        except Exception:
-            is_live = False
-        if is_live_flag:
-            is_live = True
+        # Live detection (prefer explicit flag)
+        is_live = bool(is_live_flag)
+        if not is_live:
+            try:
+                if hasattr(start, 'tzinfo') and hasattr(stop, 'tzinfo'):
+                    is_live = start <= now_local <= stop
+            except Exception:
+                is_live = False
+        # Label
+        def _fmt_time(val):
+            try:
+                return val.strftime('%H:%M')
+            except Exception:
+                s = str(val) if val is not None else ''
+                return s[11:16] if len(s) >= 16 and 'T' in s else s
         when = _fmt_time(start)
-        label = f'LIVE - {title}' if is_live else (f'{title} ({when})' if when else title)
+        label = f"LIVE - {title}" if is_live else (f"{title} ({when})" if when else title)
         if league and not label.startswith(league + ':'):
-            label = f'{league}: {label}'
-        eid = str(_get(ev, 'id', chno))
-        tvg_id = eid if eid.isdigit() else str(int(hashlib.sha1(eid.encode()).hexdigest()[:10], 16))
-        tvg_chno = str(chno)
+            label = f"{league}: {label}"
+        # URL: prefer provided deeplink/url; fallback to sportscenter scheme
         url = _get(ev, 'deeplink') or _get(ev, 'url')
         if not url:
-            url = f"sportscenter://x-callback-url/showWatchStream?playID={eid}"
-        lines.append(f'#EXTINF:-1 tvg-id="{tvg_id}" tvg-name="{label}" tvg-chno="{tvg_chno}" group-title="DeepLinks • ESPN+",{label}')
+            url = f"sportscenter://x-callback-url/showWatchStream?playID={play_id}"
+        # Write
+        lines.append(
+            f'#EXTINF:-1 tvg-id="{chan_id}" tvg-name="{label}" tvg-chno="{chno}" group-title="DeepLinks • ESPN+",{label}'
+        )
         lines.append(url)
         chno += 1
     with open(OUT_M3U, 'w', encoding='utf-8') as f:

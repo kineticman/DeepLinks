@@ -1,3 +1,9 @@
+## v2.1.5 — 2025-11-08
+
+- **M3U/XMLTV ID parity:** `tvg-id` now equals `dl-<playID>` to match XMLTV <channel id>.
+- **Per-event M3U:** one `#EXTINF` per event (Option 1).
+- **No functional change tonight:** DB showed all events ended by the time of generation; generator behavior unchanged.
+
 ## v2.1.0 — 2025-11-08
 
 - **Fix:** M3U now writes one row per event reliably (works with dicts or objects).
