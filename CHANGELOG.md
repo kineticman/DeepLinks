@@ -1,3 +1,10 @@
+## v2.0.0 — 2025-11-08
+
+- M3U now emits **one channel per event** (Option 1).
+- Channel count uses a single run-time reference (consistent LIVE/Counts).
+- Removed undefined names from prior injected block.
+- Indentation normalized (tabs → 4 spaces).
+
 # Changelog
 
 All notable changes to this project will be documented in this file.
