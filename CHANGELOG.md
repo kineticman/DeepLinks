@@ -1,3 +1,10 @@
+## v2.1.0 — 2025-11-08
+
+- **Fix:** M3U now writes one row per event reliably (works with dicts or objects).
+- **Fix:** No undefined names; stable numeric tvg-ids; tvg-chno starts at 31000.
+- **Improvement:** Live detection uses start/stop or explicit is_live; labels are consistent.
+- **Note:** Replaces buggy v2.0.0 tag.
+
 ## v2.0.0 — 2025-11-08
 
 - M3U now emits **one channel per event** (Option 1).
