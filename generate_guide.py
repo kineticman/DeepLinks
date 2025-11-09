@@ -413,12 +413,55 @@ def summarize_run(events: List[Event]) -> None:
     print(f"Found {len(events)} events\n")
 
     print("Generating M3U playlist...")
+    # === Per-event M3U writer (robust) ===
     now_local = now_utc()
-    m3u_count = sum(1 for ev in events if getattr(ev, "stop", None) is None or ev.stop >= now_local)
-    generate_m3u(events, OUT_M3U)
+    def _get(ev, key, default=None):
+        try:
+            return ev.get(key, default)
+        except AttributeError:
+            return getattr(ev, key, default)
+    def _fmt_time(val):
+        try:
+            return val.strftime('%H:%M')
+        except Exception:
+            s = str(val) if val is not None else ''
+            return s[11:16] if len(s) >= 16 and 'T' in s else s
+    import hashlib
+    lines = ['#EXTM3U']
+    chno = 31000
+    events_list = list(events)
+    for ev in events_list:
+        league = _get(ev, 'league', '') or ''
+        title  = _get(ev, 'title', 'Unknown Event')
+        start  = _get(ev, 'start', _get(ev, 'start_utc'))
+        stop   = _get(ev, 'stop',  _get(ev, 'stop_utc'))
+        is_live_flag = bool(_get(ev, 'is_live', False))
+        # Try to compute live if we have datetime-like start/stop
+        is_live = False
+        try:
+            if hasattr(start, 'tzinfo') and hasattr(stop, 'tzinfo'):
+                is_live = start <= now_local <= stop
+        except Exception:
+            is_live = False
+        if is_live_flag:
+            is_live = True
+        when = _fmt_time(start)
+        label = f'LIVE - {title}' if is_live else (f'{title} ({when})' if when else title)
+        if league and not label.startswith(league + ':'):
+            label = f'{league}: {label}'
+        eid = str(_get(ev, 'id', chno))
+        tvg_id = eid if eid.isdigit() else str(int(hashlib.sha1(eid.encode()).hexdigest()[:10], 16))
+        tvg_chno = str(chno)
+        url = _get(ev, 'deeplink') or _get(ev, 'url')
+        if not url:
+            url = f"sportscenter://x-callback-url/showWatchStream?playID={eid}"
+        lines.append(f'#EXTINF:-1 tvg-id="{tvg_id}" tvg-name="{label}" tvg-chno="{tvg_chno}" group-title="DeepLinks • ESPN+",{label}')
+        lines.append(url)
+        chno += 1
+    with open(OUT_M3U, 'w', encoding='utf-8') as f:
+        f.write('\n'.join(lines) + '\n')
     print(f"  Saved: {os.path.abspath(OUT_M3U)}")
-    print(f"  Channels: {m3u_count}\n")
-
+    print(f"  Channels: {len(events_list)}\n")
     print("Generating XMLTV guide...")
     generate_xmltv(events, OUT_XML)
     print(f"  Saved: {os.path.abspath(OUT_XML)}\n")
