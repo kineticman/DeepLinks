@@ -13,6 +13,7 @@
 from __future__ import annotations
 
 import os
+from per_event_writer import write_m3u_per_event
 import re
 import sqlite3
 from dataclasses import dataclass
@@ -412,13 +413,9 @@ def summarize_run(events: List[Event]) -> None:
     print(f"Found {len(events)} events\n")
 
     print("Generating M3U playlist...")
+    now_local = now_utc()
+    m3u_count = sum(1 for ev in events if getattr(ev, "stop", None) is None or ev.stop >= now_local)
     generate_m3u(events, OUT_M3U)
-    m3u_count = 0
-    try:
-        with open(OUT_M3U, "r", encoding="utf-8") as fh:
-            m3u_count = sum(1 for ln in fh if ln.startswith("#EXTINF"))
-    except FileNotFoundError:
-        pass
     print(f"  Saved: {os.path.abspath(OUT_M3U)}")
     print(f"  Channels: {m3u_count}\n")
 
